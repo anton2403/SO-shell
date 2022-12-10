@@ -107,6 +107,12 @@ cmds[MAX_CMD]= {//Variable global. Array de comandos. NOMBRE / FUNCION
         {"mostrarvar", showvar},
         {"showvar", showvar},
         {"changevar", changevar},
+        {"showenv", showenv},
+        {"fork", cmd_fork},
+        {"execute", execute},
+        {"listjobs", listjobs},
+        {"deljobs", deljobs},
+        {"job", job},
         {NULL, NULL}
         };
 

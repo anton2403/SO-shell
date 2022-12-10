@@ -169,6 +169,7 @@ int cmd_fork (char *tokens[]) {
         perror("");
     } else if (pid > 0) {
         //Proceso Original
+        printf("Ejecutando proceso %d", pid);
         waitpid(pid, NULL, 0); // Suspende la ejecucion del padre hasta que el hijo acabe
     }
 }
