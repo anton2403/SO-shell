@@ -41,7 +41,7 @@ typedef struct alloc_options{
     int malloc;
     int shared;
     int mmap;
-}alloc_options;
+} alloc_options;
 
 int allocate(char *tokens[], list l);
 int deallocate(char *tokens[], list l);

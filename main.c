@@ -109,7 +109,7 @@ cmds[MAX_CMD]= {//Variable global. Array de comandos. NOMBRE / FUNCION
         {"changevar", changevar},
         {"showenv", showenv},
         {"fork", cmd_fork},
-        {"execute", execute},
+        {"execute", executable},
         {"listjobs", listjobs},
         {"deljobs", deljobs},
         {"job", job},
@@ -128,14 +128,14 @@ int process_input(char *tokens[], lists lists){
             return allocate(tokens+1, lists.mem_list);
         else if(strcmp(tokens[0], "deallocate") == 0)
             return deallocate(tokens+1, lists.mem_list);
-        else if (strcmp(tokens[0], "memory") == 0){
-            return memory(tokens+1, lists.mem_list);
-        }
-        else {
-            for (i = 0; cmds[i].cmd_name != NULL; i++) {
-                if (strcmp(tokens[0], cmds[i].cmd_name) == 0) {
-                    return cmds[i].cmd_fun(tokens + 1);
-                }
+        else if (strcmp(tokens[0], "memory") == 0)
+            return memory(tokens + 1, lists.mem_list);
+        else if (strcmp(tokens[0], "fork") == 0)
+            return cmd_fork(tokens +1, lists.jobs_list);
+    } else {
+        for (i = 0; cmds[i].cmd_name != NULL; i++) {
+            if (strcmp(tokens[0], cmds[i].cmd_name) == 0) {
+                return cmds[i].cmd_fun(tokens + 1);
             }
         }
         //SI LLEGO AQUI ES QUE NO ENCONTRO EL COMANDO
@@ -166,9 +166,9 @@ int main(int argc, char *arvg[], char * envp[]) {
 
         split_string(input, tokens);
         end = process_input(tokens, lists);
-        }
+    }
     deleteList(lists.hist_list, free);
-    for(i= first(lists.mem_list); !at_end(lists.mem_list, i); i = next(lists.mem_list,i)){
+    for(i = first(lists.mem_list); !at_end(lists.mem_list, i); i = next(lists.mem_list,i)){
         aux = get(lists.mem_list, i);
         free(aux->mem_addr);
     }

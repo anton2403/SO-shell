@@ -7,6 +7,7 @@ Anton Lopez Nunez , anton.lopez.nunez@udc.es
 
 #define _GNU_SOURCE
 #define MAXVAR 256
+#define MAXNAME 256
 
 extern char **environ;
 
@@ -82,10 +83,11 @@ int showvar (char *tokens[]) { // Falta acceder por arg3 y environ
     if (tokens[0] != NULL) { // Especifica la variable de la que mostrar informacion
         char *var = tokens[0];
         char *value = getenv(var);
-
         if (value != NULL) { // La variable existe
             printf("Con arg3 main %s = %s (%p) \n", var, value, &value);
+            //value = environ(var);
             printf("Con environ %s = %s (%p) \n", var, value, &value);
+            value = getenv(var);
             printf("Con getenv %s = %s (%p) \n", var, value, &value);
 
         } else {  // La variable no existe (getenv devuelve NULL)
@@ -161,21 +163,42 @@ int showenv (char *tokens[]) {
 
 }
 
-int cmd_fork (char *tokens[]) {
+int cmd_fork (char *tokens[], list jobs_list) {
+    /*pid_t pid;
+
+    if ((pid=fork())==0) {
+        deleteList(jobs_list, free);
+        printf ("ejecutando proceso %d\n", getpid());
+    } else if (pid!=-1)
+        waitpid (pid,NULL,0);*/
 
     pid_t pid = fork();
-    
+
     if (pid < 0) {
         perror("");
     } else if (pid > 0) {
         //Proceso Original
-        printf("Ejecutando proceso %d", pid);
+        printf ("ejecutando proceso %d\n", getpid());
         waitpid(pid, NULL, 0); // Suspende la ejecucion del padre hasta que el hijo acabe
     }
 }
 
-int execute (char *tokens[]) {
-
+char *executable (char *tokens[], char *s) {
+    char path[MAXNAME];
+    static char aux2[MAXNAME];
+    struct stat st;
+    char *p;
+    if (s==NULL || (p=getenv("PATH"))==NULL)
+        return s;
+    if (s[0]=='/' || !strncmp (s,"./",2) || !strncmp (s,"../",3))
+        return s;       /*is an absolute pathname*/
+    strncpy (path, p, MAXNAME);
+    for (p=strtok(path,":"); p!=NULL; p=strtok(NULL,":")){
+        sprintf (aux2,"%s/%s",p,s);
+        if (lstat(aux2,&st)!=-1)
+            return aux2;
+    }
+    return s;
 }
 
 int listjobs (char *tokens[]) {
