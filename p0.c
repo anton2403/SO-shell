@@ -154,7 +154,7 @@ int ayuda(char* tokens[]){
                "\tdeljobs\n"
                "\tjob\n"
                "\t*****\n"
-               "\t");
+               "\t\n");
     } else if(strcmp(tokens[0], "autores") == 0){
         printf("NAME\n\tautores\n"
                "SYNTAX\n\tautores [-l | -n]\n"

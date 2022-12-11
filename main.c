@@ -129,13 +129,15 @@ int process_input(char *tokens[], lists lists){
         else if(strcmp(tokens[0], "deallocate") == 0)
             return deallocate(tokens+1, lists.mem_list);
         else if (strcmp(tokens[0], "memory") == 0)
-            return memory(tokens + 1, lists.mem_list);
-        else if (strcmp(tokens[0], "fork") == 0)
+            return memory(tokens+1, lists.mem_list);
+        else if (strcmp(tokens[0], "fork") == 0) {
             return cmd_fork(tokens +1, lists.jobs_list);
-    } else {
-        for (i = 0; cmds[i].cmd_name != NULL; i++) {
-            if (strcmp(tokens[0], cmds[i].cmd_name) == 0) {
-                return cmds[i].cmd_fun(tokens + 1);
+        }
+        else {
+            for (i = 0; cmds[i].cmd_name != NULL; i++) {
+                if (strcmp(tokens[0], cmds[i].cmd_name) == 0) {
+                    return cmds[i].cmd_fun(tokens + 1);
+                }
             }
         }
         //SI LLEGO AQUI ES QUE NO ENCONTRO EL COMANDO
@@ -147,7 +149,7 @@ int process_input(char *tokens[], lists lists){
 int main(int argc, char *arvg[], char * envp[]) {
     lists lists;
     pos i;
-
+    
     create_list(&lists.hist_list);
     create_list(&lists.mem_list);
     create_list(&lists.jobs_list);
@@ -166,7 +168,7 @@ int main(int argc, char *arvg[], char * envp[]) {
 
         split_string(input, tokens);
         end = process_input(tokens, lists);
-    }
+        }
     deleteList(lists.hist_list, free);
     for(i = first(lists.mem_list); !at_end(lists.mem_list, i); i = next(lists.mem_list,i)){
         aux = get(lists.mem_list, i);

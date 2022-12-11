@@ -10,6 +10,10 @@ Anton Lopez Nunez , anton.lopez.nunez@udc.es
 #define MAXNAME 256
 
 extern char **environ;
+struct options {
+    int a, e, p;
+} var_options = {0, 0, 0};
+
 
 int priority(char *tokens[]){
     
@@ -82,13 +86,12 @@ int showvar (char *tokens[]) { // Falta acceder por arg3 y environ
 
     if (tokens[0] != NULL) { // Especifica la variable de la que mostrar informacion
         char *var = tokens[0];
-        char *value = getenv(var);
-        if (value != NULL) { // La variable existe
-            printf("Con arg3 main %s = %s (%p) \n", var, value, &value);
-            //value = environ(var);
-            printf("Con environ %s = %s (%p) \n", var, value, &value);
-            value = getenv(var);
-            printf("Con getenv %s = %s (%p) \n", var, value, &value);
+        char *value_getenv = getenv(var);
+        
+        if (value_getenv != NULL) { // La variable existe
+            printf("Con arg3 main %s = %s (%p) \n", var, value_getenv, &value_getenv);
+            printf("Con environ %s = %s (%p) \n", var, value_getenv, &value_getenv);
+            printf("Con getenv %s = %s (%p) \n", var, value_getenv, &value_getenv);
 
         } else {  // La variable no existe (getenv devuelve NULL)
             printf("Enviromental Variable '%s' does not exist\n", var);
@@ -108,55 +111,58 @@ int showvar (char *tokens[]) { // Falta acceder por arg3 y environ
     return 0;
 }
 
-int changevar (char *tokens[]) { // Faltan las opciones
-    struct options {
-        int a, e, p;
-    } options = {0, 0, 0};
+int changevar (char *tokens[]) {
+
+    if (tokens[0] != NULL) { // Hay algo despues del nombre del comando
+        char *var;
+        char *oldValue;
+        // Si el primer argumento es una opcion
+        if (strcmp (tokens[0], "-a") == 0) { 
+            var_options.a = 1;
+            var = tokens[1];
+            oldValue = tokens[2];
+        } else if (strcmp (tokens[0], "-e") == 0) {
+            var_options.e = 1;
+            var = tokens[1];
+            oldValue = tokens[2];
+        } else if (strcmp (tokens[0], "-p") == 0) {
+            var_options.p = 1;
+            var = tokens[1];
+            oldValue = tokens[2];
+        } else { // Si el primer argumento es la variable (el segundo sera el nuevo valor)
+            var = tokens[0];
+            oldValue = getenv(var);
+
+            if (oldValue != NULL) { // La variable existe
+                if (tokens[1] != NULL) { // Especifica el valor a asignar (Seugundo valor)
+                    char *newValue = tokens[1];
+                    int returnSet = setenv(var, newValue, 1);
     
-        if (tokens[0] != NULL) { // Especifica la variable a cambiar
-
-            if (strcmp (tokens[0], "-a") == 0) {
-                options.a = 1;
-            } else if (strcmp (tokens[0], "-e") == 0) {
-                options.e = 1;
-            } else if (strcmp (tokens[0], "-p") == 0) {
-                options.p = 1;
-            } else {
-                char *var = tokens[0];
-                char *oldvalue = getenv(var);
-
-                if (oldvalue != NULL) { // La variable existe
-                    if (tokens[1] != NULL) { // Especifica el valor a asignar
-                        char *newValue = tokens[1];
-                        int returnSet = setenv(var, newValue, 1);
-        
-                        if (returnSet == -1) {
-                            perror("Error setting variable");
-                            return 0;
-                        } else {
-                            printf("Variable '%s' changed from '%s' to '%s'\n", var, oldvalue, newValue);
-                            return 0;
-                        }
-        
-                    } else { // No especifica el valor a asignar
-                        printf("Variable '%s' has value '%s'\n", var, oldvalue);
+                    if (returnSet == -1) {
+                        perror("Error setting variable");
+                        return 0;
+                    } else {
+                        printf("Variable '%s' changed from '%s' to '%s'\n", var, oldValue, newValue);
                         return 0;
                     }
-
-                } else {  // La variable no existe (getenv devuelve NULL)
-                    printf("Enviromental Variable '%s' does not exist\n", var);
-                    perror("");
-                    return 0;
-        
-                }
-            }
     
-        } else { // No especifica que variable cambiar
-            printf("Error: No variable specified\n");
-            printf("Usage: changevar [-a|-e|-p] <variable> <value>\n");
-            return 0;
+                } else { // No especifica el valor a asignar
+                    printf("Variable '%s' has value '%s'\n", var, oldValue);
+                    return 0;
+                }
+
+            } else {  // La variable no existe (getenv devuelve NULL)
+                printf("Enviromental Variable '%s' does not exist\n", var);
+                perror("");
+                return 0;
+    
+            }
         }
+    } else {
+        printf("Error: No variable specified\n");
+        printf("Usage: changevar [-a|-e|-p] <variable> <value>\n");
         return 0;
+    }
 }
 
 int showenv (char *tokens[]) {
@@ -174,7 +180,9 @@ int cmd_fork (char *tokens[], list jobs_list) {
 
     pid_t pid = fork();
 
-    if (pid < 0) {
+    if (pid == 0) {
+        deleteList (jobs_list, free);
+    } else if (pid < 0) {
         perror("");
     } else if (pid > 0) {
         //Proceso Original
