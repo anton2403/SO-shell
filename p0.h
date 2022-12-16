@@ -21,7 +21,7 @@ int pid(char *tokens[]);
 int carpeta(char *tokens[]);
 int fecha(char* tokens[]);
 int hist(char* tokens[], list l);
-int comando(char *tokens[], list l);
+int comando(char *tokens[], list l, char *envp[]);
 int infosis(char *tokens[]);
 int ayuda(char* tokens[]);
 int fin(char *tokens[]);

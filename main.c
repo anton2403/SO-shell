@@ -1,4 +1,5 @@
-/*  
+
+/*
 Carlos Martinez Rabunal , carlos.martinez4@udc.es
 Anton Lopez Nunez , anton.lopez.nunez@udc.es
 */
@@ -30,12 +31,12 @@ typedef struct lists {
 
 /* Functions Declaration *********************************************************************************************** */
 
-int process_input(char *tokens[], struct lists listas);
+int process_input(char *tokens[], struct lists listas, char *envp[]);
 int split_string(char* string, char* trozos[]);
 
 /* P0 **************************************************************************************************************** */
 
-int comando(char *tokens[], list l){
+int comando(char *tokens[], list l, char *envp[]){
     lists lists;
     lists.mem_list = l;
     int num_comand = atoi(tokens[0]);
@@ -54,7 +55,7 @@ int comando(char *tokens[], list l){
     printf("%d) %s \n",counter, aux);
     strcpy(tokens[0], aux);
     split_string(aux, tokens);
-    process_input(tokens, lists);
+    process_input(tokens, lists, envp);
     return 0;
 }
 
@@ -102,37 +103,45 @@ cmds[MAX_CMD]= {//Variable global. Array de comandos. NOMBRE / FUNCION
         {"recurse", recurse},
         {"memfill", memfill},
         {"memdump", memdump},
-        // p3
         {"prioridad", priority},
-        {"mostrarvar", showvar},
-        {"showvar", showvar},
-        {"changevar", changevar},
-        {"showenv", showenv},
-        {"fork", cmd_fork},
-        {"execute", executable},
-        {"listjobs", listjobs},
-        {"deljobs", deljobs},
-        {"job", job},
+        // showvar es una funcion a parte
+        // changevar es una funcion a parte
+        // showenv es una funcion a parte
+        // fork es una funcion a parte
+        // job, deljob y listjob son funciones a parte
+        {"execute", execute},
         {NULL, NULL}
         };
 
-int process_input(char *tokens[], lists lists){
+int process_input(char *tokens[], lists lists, char* envp[]){
     int i;
     //El hist es un comando que no esta en el array cmds[] porque necesita acceder a la lista
     if(*tokens != NULL){
         if (strcmp(tokens[0], "hist") == 0)
             return hist(tokens + 1, lists.hist_list);
         else if (strcmp(tokens[0], "comando") == 0)
-            return comando(tokens + 1, lists.hist_list);
+            return comando(tokens + 1, lists.hist_list, envp);
         else if(strcmp(tokens[0], "allocate") == 0)
             return allocate(tokens+1, lists.mem_list);
         else if(strcmp(tokens[0], "deallocate") == 0)
             return deallocate(tokens+1, lists.mem_list);
         else if (strcmp(tokens[0], "memory") == 0)
             return memory(tokens+1, lists.mem_list);
-        else if (strcmp(tokens[0], "fork") == 0) {
+        else if (strcmp(tokens[0], "showvar") ==0)
+            return showvar(tokens +1, envp);
+        else if (strcmp(tokens[0], "changevar")==0)
+            return changevar(tokens + 1, envp);
+        else if (strcmp (tokens[0], "showenv")==0)
+            return showenv(tokens +1, envp);
+        else if (strcmp(tokens[0], "fork") == 0)
             return cmd_fork(tokens +1, lists.jobs_list);
-        }
+        else if (strcmp(tokens[0], "listjobs")==0)
+            return listjobs(tokens, lists.jobs_list);
+        else if (strcmp(tokens[0], "deljobs")==0)
+            return listjobs(tokens, lists.jobs_list);
+        else if (strcmp(tokens[0], "job")==0)
+            return listjobs(tokens, lists.jobs_list);
+
         else {
             for (i = 0; cmds[i].cmd_name != NULL; i++) {
                 if (strcmp(tokens[0], cmds[i].cmd_name) == 0) {
@@ -141,12 +150,13 @@ int process_input(char *tokens[], lists lists){
             }
         }
         //SI LLEGO AQUI ES QUE NO ENCONTRO EL COMANDO
-        printf("%s no es un comando valido para el shell \n", tokens[0]);
+        cmd_execution(tokens, envp, envp);
+        
     }
     return 0;
 }
 
-int main(int argc, char *arvg[], char * envp[]) {
+int main(int argc, char *arvg[], char *envp[]) {
     lists lists;
     pos i;
     
@@ -167,7 +177,7 @@ int main(int argc, char *arvg[], char * envp[]) {
         InsertElement(lists.hist_list,str);
 
         split_string(input, tokens);
-        end = process_input(tokens, lists);
+        end = process_input(tokens, lists, envp);
         }
     deleteList(lists.hist_list, free);
     for(i = first(lists.mem_list); !at_end(lists.mem_list, i); i = next(lists.mem_list,i)){
