@@ -91,6 +91,7 @@ cmds[MAX_CMD]= {//Variable global. Array de comandos. NOMBRE / FUNCION
         {"fin", fin},
         {"salir", fin},
         {"bye", fin},
+        {"exit", fin},
         {"create", create},
         {"stat", stat_fun},
         {"list", list_fun},
